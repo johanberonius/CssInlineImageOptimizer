@@ -32,8 +32,13 @@ class CssInlineImageOptimizer
                if ( $match[0] === '/' && preg_match( "/\.(gif|png|jpe?g)$/i", $match, $imageType ) )
                {
                    $imagePath = '.' . $match;
+                   if ( !file_exists( $imagePath ) )
+                   {
+                       eZDebug::writeWarning( $match . ' referenced in stylesheets does not exist', __METHOD__ );
+                       continue;
+                   }
                    $imageSize = filesize( $imagePath );
-                   if ( $imageSize !== false && $imageSize > 0 && $imageSize < $maxBytes )
+                   if ( $imageSize > 0 && $imageSize < $maxBytes )
                    {
                         if ( $imageType[1] == 'jpg' )
                             $imageType[1] = 'jpeg';
