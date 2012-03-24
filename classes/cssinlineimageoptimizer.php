@@ -23,6 +23,7 @@ class CssInlineImageOptimizer
         {
             $maxBytes = (int)$ezjscINI->variable( 'CssInlineImageOptimizer', 'InlineImageMaxBytes' );
         }
+        $excludePatterns = $ezjscINI->variable( 'CssInlineImageOptimizer', 'ExcludePatterns' );
 
         if ( $packLevel > 2 && $maxBytes > 0 && preg_match_all( "/url\(\s*[\'|\"]?([A-Za-z0-9_\-\/\.\\%?&#]+)[\'|\"]?\s*\)/ix", $css, $urlMatches ) )
         {
@@ -38,7 +39,7 @@ class CssInlineImageOptimizer
                        continue;
                    }
                    $imageSize = filesize( $imagePath );
-                   if ( $imageSize > 0 && $imageSize < $maxBytes )
+                   if ( $imageSize > 0 && $imageSize < $maxBytes && !self::excludeImage( $imagePath, $excludePatterns ) )
                    {
                         if ( $imageType[1] == 'jpg' )
                             $imageType[1] = 'jpeg';
@@ -51,6 +52,25 @@ class CssInlineImageOptimizer
            }
         }
         return $css;
+    }
+
+    /**
+     * Checks if the image should be excluded from the base64 encoding or not.
+     *
+     * @param string $imagePath the path to the image
+     * @param array $patterns array of PCRE patterns
+     * @return bool
+     */
+    private static function excludeImage( $imagePath, array $patterns )
+    {
+        foreach ( $patterns as $pattern )
+        {
+            if ( preg_match( $pattern, $imagePath ) )
+            {
+                return true;
+            }
+        }
+        return false;
     }
 }
 ?>
