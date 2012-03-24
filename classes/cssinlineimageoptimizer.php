@@ -18,10 +18,10 @@ class CssInlineImageOptimizer
     public static function optimize( $css, $packLevel = 2 )
     {
         $maxBytes = 2048;
-        $ezjscINI    = eZINI::instance( 'ezjscore.ini' );
+        $ezjscINI = eZINI::instance( 'ezjscore.ini' );
         if ( $ezjscINI->hasVariable( 'CssInlineImageOptimizer', 'InlineImageMaxBytes' ) )
         {
-            $maxBytes = (int) $ezjscINI->variable( 'CssInlineImageOptimizer', 'InlineImageMaxBytes' );
+            $maxBytes = (int)$ezjscINI->variable( 'CssInlineImageOptimizer', 'InlineImageMaxBytes' );
         }
 
         if ( $packLevel > 2 && $maxBytes > 0 && preg_match_all( "/url\(\s*[\'|\"]?([A-Za-z0-9_\-\/\.\\%?&#]+)[\'|\"]?\s*\)/ix", $css, $urlMatches ) )
@@ -29,17 +29,17 @@ class CssInlineImageOptimizer
            $urlMatches = array_unique( $urlMatches[1] );
            foreach ( $urlMatches as $match )
            {
-               if ( $match[0] === '/' && preg_match("/\.(gif|png|jpe?g)$/i", $match, $imageType))
+               if ( $match[0] === '/' && preg_match( "/\.(gif|png|jpe?g)$/i", $match, $imageType ) )
                {
                    $imagePath = '.' . $match;
-                   $imageSize = filesize($imagePath);
-                   if ($imageSize !== false && $imageSize > 0 && $imageSize < $maxBytes)
+                   $imageSize = filesize( $imagePath );
+                   if ( $imageSize !== false && $imageSize > 0 && $imageSize < $maxBytes )
                    {
-                        if ($imageType[1] == 'jpg')
+                        if ( $imageType[1] == 'jpg' )
                             $imageType[1] = 'jpeg';
 
-                        $imageContents = file_get_contents($imagePath);
-                        $dataURL = 'data:image/' . $imageType[1] . ';base64,' . base64_encode($imageContents);
+                        $imageContents = file_get_contents( $imagePath );
+                        $dataURL = 'data:image/' . $imageType[1] . ';base64,' . base64_encode( $imageContents );
                         $css = str_replace( $match, $dataURL, $css );
                    }
                }
