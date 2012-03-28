@@ -18,34 +18,59 @@ class CssInlineImageOptimizer
     public static function optimize( $css, $packLevel = 2 )
     {
         $maxBytes = 2048;
-        $ezjscINI    = eZINI::instance( 'ezjscore.ini' );
+        $ezjscINI = eZINI::instance( 'ezjscore.ini' );
         if ( $ezjscINI->hasVariable( 'CssInlineImageOptimizer', 'InlineImageMaxBytes' ) )
         {
-            $maxBytes = (int) $ezjscINI->variable( 'CssInlineImageOptimizer', 'InlineImageMaxBytes' );
+            $maxBytes = (int)$ezjscINI->variable( 'CssInlineImageOptimizer', 'InlineImageMaxBytes' );
         }
+        $excludePatterns = $ezjscINI->variable( 'CssInlineImageOptimizer', 'ExcludePatterns' );
 
         if ( $packLevel > 2 && $maxBytes > 0 && preg_match_all( "/url\(\s*[\'|\"]?([A-Za-z0-9_\-\/\.\\%?&#]+)[\'|\"]?\s*\)/ix", $css, $urlMatches ) )
         {
            $urlMatches = array_unique( $urlMatches[1] );
            foreach ( $urlMatches as $match )
            {
-               if ( $match[0] === '/' && preg_match("/\.(gif|png|jpe?g)$/i", $match, $imageType))
+               if ( $match[0] === '/' && preg_match( "/\.(gif|png|jpe?g)$/i", $match, $imageType ) )
                {
                    $imagePath = '.' . $match;
-                   $imageSize = filesize($imagePath);
-                   if ($imageSize !== false && $imageSize > 0 && $imageSize < $maxBytes)
+                   if ( !file_exists( $imagePath ) )
                    {
-                        if ($imageType[1] == 'jpg')
+                       eZDebug::writeWarning( $match . ' referenced in stylesheets does not exist', __METHOD__ );
+                       continue;
+                   }
+                   $imageSize = filesize( $imagePath );
+                   if ( $imageSize > 0 && $imageSize < $maxBytes && !self::excludeImage( $imagePath, $excludePatterns ) )
+                   {
+                        if ( $imageType[1] == 'jpg' )
                             $imageType[1] = 'jpeg';
 
-                        $imageContents = file_get_contents($imagePath);
-                        $dataURL = 'data:image/' . $imageType[1] . ';base64,' . base64_encode($imageContents);
+                        $imageContents = file_get_contents( $imagePath );
+                        $dataURL = 'data:image/' . $imageType[1] . ';base64,' . base64_encode( $imageContents );
                         $css = str_replace( $match, $dataURL, $css );
                    }
                }
            }
         }
         return $css;
+    }
+
+    /**
+     * Checks if the image should be excluded from the base64 encoding or not.
+     *
+     * @param string $imagePath the path to the image
+     * @param array $patterns array of PCRE patterns
+     * @return bool
+     */
+    private static function excludeImage( $imagePath, array $patterns )
+    {
+        foreach ( $patterns as $pattern )
+        {
+            if ( preg_match( $pattern, $imagePath ) )
+            {
+                return true;
+            }
+        }
+        return false;
     }
 }
 ?>
