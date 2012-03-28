@@ -8,4 +8,8 @@ CssOptimizer[]=CssInlineImageOptimizer
 # If not set the default value of 2048 will be used.
 #InlineImageMaxBytes=2048
 
+# if the image path matches one of those patterns, it will not be inlined
+ExcludePatterns[]
+#ExcludePatterns[]=/.*sprite\./
+
 */ ?>
