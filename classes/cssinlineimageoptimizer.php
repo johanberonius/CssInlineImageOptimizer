@@ -30,7 +30,7 @@ class CssInlineImageOptimizer
            $urlMatches = array_unique( $urlMatches[1] );
            foreach ( $urlMatches as $match )
            {
-               if ( $match[0] === '/' && preg_match( "/\.(gif|png|jpe?g)$/i", $match, $imageType ) )
+               if ( $match[0] === '/' && preg_match( "/\.(gif|png|jpe?g|svg)$/i", $match, $imageType ) )
                {
                    $imagePath = '.' . $match;
                    if ( !file_exists( $imagePath ) )
@@ -43,6 +43,8 @@ class CssInlineImageOptimizer
                    {
                         if ( $imageType[1] == 'jpg' )
                             $imageType[1] = 'jpeg';
+                        elseif ($imageType[1] == 'svg')
+                            $imageType[1] = 'svg+xml';
 
                         $imageContents = file_get_contents( $imagePath );
                         $dataURL = 'data:image/' . $imageType[1] . ';base64,' . base64_encode( $imageContents );
